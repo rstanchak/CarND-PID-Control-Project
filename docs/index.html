@@ -4,10 +4,7 @@ layout: default
 
 <div class="home">
 
-<title>PID Controller Reflections</title>
-</head>
-<body>
-<h1>PID Controller Reflections</h1>
+<h1>Reflections</h1>
 Author: Roman Stanchak</br>
 Date: Sept 17 2017</br>
 Course: Udacity Self Driving Car Term 2
@@ -21,14 +18,29 @@ to the CTE.  This was expected.</p>
 default, untuned parameters, increasing Kp tends to make the car more responsive to 
 errors, but quickly overshoot, oscillate wildly, and crash.  Decreasing made the car 
 less responsive and more likely to simply drive off the track.
-
+</p>
+<p>
 Starting with the final, tuned parmaters, increasing Kp tends to make the car more 
 responsive to errors, particularly sharp corners.  With the compensatory effect of Kd 
 and Ki, the oscillation was not as severe, but increasing Kp definitely increased 
 instability.  Decreasing Kp made the car less twitchy and stable, but less reactive, 
 unable to navigate the sharp corners of the track.
+<table>
+		<tr>
+				<td><video src="initial.mp4" width=360 preload controls></video></td>
+				<td><video src="increase-Kp.mp4" width=360 preload controls></video></td>
+				<td><video src="decrease-Kp.mp4" width=360 preload controls></video></td>
+		</tr>
+		<tr>
+				<td>Reference Kp (0.0559705)</td>
+				<td>Increase Kp (0.1559705)</td>
+				<td>Decrease Kp (0.0059705)</td>
+		</tr>
+</table>
+</p>
 
-<p>Overall, Kp had less of a noticeable effect than I expected, and it was difficult to manually tune this PID controller using most approaches in the literature, as they typically start with Kp.  Tuning Kp with Kd and Ki set to zero was unproductive because the car would either crash by steering too slowly and driving off the road, or correcting too aggresively and quickly falling into an oscilation (and crashing). </p>
+<p>Overall, Kp had less of an effect than I expected, and it was difficult to manually tune this PID controller using most approaches in the literature, as they typically start with Kp.  Tuning Kp with Kd and Ki set to zero was unproductive because the car would either crash by steering too slowly and driving off the road, or correcting too aggresively and quickly falling into an oscilation (and crashing). </p>
+
 
 <h3>I/Ki</h3>
 
@@ -37,6 +49,19 @@ Quantitatively, the effect of Ki was to increase the steering angle in proportio
 In the context of the lecture, the suggestion was that Ki was mostly useful for correcting system bias.  I didn't expect the simulator to have bias, so I expected Ki to small.
 
 Qualitatively, increasing Ki helped steer the vehicle more slowly toward the center of the lane, but tended to dampen response time to over-corrections to sharp corners.
+<table>
+		<tr>
+				<td><video src="initial.mp4" width=360 preload controls></video></td>
+				<td><video src="increase-Ki.mp4" width=360 preload controls></video></td>
+				<td><video src="decrease-Ki.mp4" width=360 preload controls></video></td>
+		</tr>
+		<tr>
+				<td>Reference Ki (0.00150358)</td>
+				<td>Increase Ki (0.00050358)</td>
+				<td>Decrease Ki (0.00250358)</td>
+		</tr>
+</table>
+</p>
 
 
 <h3>D/Kd</h3>
@@ -44,18 +69,28 @@ Qualitatively, increasing Ki helped steer the vehicle more slowly toward the cen
 Quantitatively, The effect of Kd was to increase the steering angle in proportion to the change in CTE. Increasing Kd had a corrective effect if the car rapidly veered off-center, and a damping effect as the car corrected, and decreased oscillation.  Decreasing Kd increased instability, and made the car less responsive in the sharp corners.
 
 Overall, Kd had the most noticeable effect on the quality of the controller, which was unexpected.
+<table>
+		<tr>
+				<td><video src="initial.mp4" width=360 preload controls></video></td>
+				<td><video src="increase-Kd.mp4" width=360 preload controls></video></td>
+				<td><video src="decrease-Kd.mp4" width=360 preload controls></video></td>
+		</tr>
+		<tr>
+				<td>Reference Kd (1.2125)</td>
+				<td>Increase Kd (1.7125)</td>
+				<td>Decrease Kd (0.7125)</td>
+		</tr>
+</table>
+</p>
 
-<h3>Videos</h3>
-<p>
-<video src="initial.mp4" width=640 height=480 preload controls/> 
-		</p>
-		<h2>Selection of the final hyperparameters </h2>
+
+<h2>Selection of the final hyperparameters </h2>
 
 		<p>The final hyperparameters were chosen as the result of a guided search process which utilized manual tuning and the Twiddle algorithm.
 
 		I started with a throttle value of 0.05 - 0.55 inversely proportional to the absolute steering value.
 		I.e. a steering value of 1 or -1, resulted in a throttle of 0.05 -- i.e. the car slows the greater correction is required.
-		I then followed the manual tuning approach described by <a href="https://robotics.stackexchange.com/a/340">What are good strategies for tuning PID loops?</a>(StackExchange):
+		I then followed the manual tuning approach described by <a href="https://robotics.stackexchange.com/a/340">"What are good strategies for tuning PID loops?" (StackExchange)</a>:
 		<ol>
 				<li>Set all gains to 0.</li>
 				<li>Increase Kd until the system oscillates.</li>
@@ -68,7 +103,7 @@ Overall, Kd had the most noticeable effect on the quality of the controller, whi
 				<li>Decrease Ki by a factor of 2-4.</li>
 		</ol>
 
-		I found this to be more intuitive than the manual tuning process documented at <a href="https://en.wikipedia.org/wiki/PID_controller">PID Controller</a>(Wikipedia),
+		I found this to be more intuitive than the manual tuning process documented at <a href="https://en.wikipedia.org/wiki/PID_controller">PID Controller (Wikipedia)</a>,
 		because tuning Kd had a greater impact on the initial quality of the controller output in terms of being able to negotiate the sharper corners.
 
 		At this speed, it was straightforward to find a set of values that would drive around the whole track.
@@ -80,4 +115,14 @@ Overall, Kd had the most noticeable effect on the quality of the controller, whi
 				<li>Repeat</li>
 		</ol>
 
-		Using this approach I was able to increase the maximum throttle up to .85.  The resulting control is rather jerky, but I was not able to effectively smooth out the oscillations without the vehicle crashing.
+		Using this approach I was able to increase the maximum throttle up to .85 without the car "crashing", however, the resulting control was rather jerky, and the car definitely drove up on the curb, so I backed the maximum throttle down 0.65 in the submitted code to demonstrate a "safe" driving speed.  I was not able to effectively smooth out the oscillations without the vehicle crashing. 
+
+<table>
+		<tr>
+				<td><video src="final.mp4" width=640 preload controls></video></td>
+		</tr>
+		<tr>
+				<td>Final Parameters Kp=0.0622524 Ki=0.0015905 Kd=1.21515</td>
+		</tr>
+</table>
+</p>

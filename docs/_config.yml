@@ -1,1 +1,4 @@
 theme: jekyll-theme-slate
+defaults:
+    - scope:
+        path: "index.html"

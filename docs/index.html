@@ -1,16 +1,31 @@
+<!DOCTYPE HTML>
 <html>
+<head>
+<title>PID Controller Reflections</title>
+</head>
 <body>
+<h1>PID Controller Reflections</h1>
+Author: Roman Stanchak</br>
+Date: Sept 17 2017</br>
+Course: Udacity Self Driving Car Term 2
 <h2>The effect each of the P, I, D components.</h2>
 
 <h3>P/Kp</h3>
 
-<p>Quantitatively, the effect of Kp was to increase the steering angle in proportion to the CTE.  This was expected.  The qualitative effect was more complex.<br/>
+<p>Quantitatively, the effect of Kp was to increase the steering angle in proportion 
+to the CTE.  This was expected.</p>
+<p>The qualitative effect was more complex. Starting with 
+default, untuned parameters, increasing Kp tends to make the car more responsive to 
+errors, but quickly overshoot, oscillate wildly, and crash.  Decreasing made the car 
+less responsive and more likely to simply drive off the track.
 
-Starting with default, untuned parameters, increasing Kp tends to make the car more responsive to errors, but quickly overshoot, oscillate wildly, and crash.  Decreasing made the car less responsive and more likely to simply drive off the track.<br/>
+Starting with the final, tuned parmaters, increasing Kp tends to make the car more 
+responsive to errors, particularly sharp corners.  With the compensatory effect of Kd 
+and Ki, the oscillation was not as severe, but increasing Kp definitely increased 
+instability.  Decreasing Kp made the car less twitchy and stable, but less reactive, 
+unable to navigate the sharp corners of the track.
 
-Starting with the final, tuned parmaters, increasing Kp tends to make the car more responsive to errors, particularly sharp corners.  With the compensatory effect of Kd and Ki, the oscillation was not as severe, but increasing Kp definitely increased instability.  Decreasing Kp made the car less twitchy and stable, but less reactive, unable to navigate the sharp corners of the track.
-
-Overall, Kp had less of a noticeable effect than I expected, and it was difficult to manually tune this PID controller using most approaches in the literature, as they typically start with Kp, and the car would crash 
+<p>Overall, Kp had less of a noticeable effect than I expected, and it was difficult to manually tune this PID controller using most approaches in the literature, as they typically start with Kp.  Tuning Kp with Kd and Ki set to zero was unproductive because the car would either crash by steering too slowly and driving off the road, or correcting too aggresively and quickly falling into an oscilation (and crashing). </p>
 
 <h3>I/Ki</h3>
 
@@ -35,33 +50,33 @@ Overall, Kd had the most noticeable effect on the quality of the controller, whi
 
 		<p>The final hyperparameters were chosen as the result of a guided search process which utilized manual tuning and the Twiddle algorithm.
 
-I started with a throttle value of 0.05 - 0.55 inversely proportional to the absolute steering value.
-I.e. a steering value of 1 or -1, resulted in a throttle of 0.05 -- i.e. the car slows the greater correction is required.
-I then followed the manual tuning approach described here (https://robotics.stackexchange.com/a/340)
-<ol>
-		<li>Set all gains to 0.</li>
-		<li>Increase Kd until the system oscillates.</li>
-		<li>Reduce Kd by a factor of 2-4.</li>
-		<li>Set Kp to about 1% of Kd.</li>
- <li>Increase Kp until oscillations start.</li>
- <li>Decrease Kp by a factor of 2-4.</li>
- <li>Set Ki to about 1% of Kp.</li>
- <li>Increase Ki until oscillations start.</li>
- <li>Decrease Ki by a factor of 2-4.</li>
-</ol>
+		I started with a throttle value of 0.05 - 0.55 inversely proportional to the absolute steering value.
+		I.e. a steering value of 1 or -1, resulted in a throttle of 0.05 -- i.e. the car slows the greater correction is required.
+		I then followed the manual tuning approach described by <a href="https://robotics.stackexchange.com/a/340">What are good strategies for tuning PID loops?</a>(StackExchange):
+		<ol>
+				<li>Set all gains to 0.</li>
+				<li>Increase Kd until the system oscillates.</li>
+				<li>Reduce Kd by a factor of 2-4.</li>
+				<li>Set Kp to about 1% of Kd.</li>
+				<li>Increase Kp until oscillations start.</li>
+				<li>Decrease Kp by a factor of 2-4.</li>
+				<li>Set Ki to about 1% of Kp.</li>
+				<li>Increase Ki until oscillations start.</li>
+				<li>Decrease Ki by a factor of 2-4.</li>
+		</ol>
 
-I found this to be more intuitive than the manual tuning process documented on Wikipedia [https://en.wikipedia.org/wiki/PID_controller], 
-because tuning Kd had a greater impact on the initial quality of the controller output in terms of being able to negotiate the sharper corners.
+		I found this to be more intuitive than the manual tuning process documented at <a href="https://en.wikipedia.org/wiki/PID_controller">PID Controller</a>(Wikipedia),
+		because tuning Kd had a greater impact on the initial quality of the controller output in terms of being able to negotiate the sharper corners.
 
-At this speed, it was straightforward to find a set of values that would drive around the whole track.
+		At this speed, it was straightforward to find a set of values that would drive around the whole track.
 
-From there, I performed the following optimization steps:
-<ol>
-		<li>Use Twiddle optimization to reduce the average CTE.  I used an initial step size of 10% of the parameter value.</li>
-		<li>Increase the maximum throttle by 0.5</li>
-		<li>Repeat</li>
-</ol>
+		From there, I performed the following optimization steps:
+		<ol>
+				<li>Use Twiddle optimization to reduce the average CTE.  I used an initial step size of 10% of the parameter value.</li>
+				<li>Increase the maximum throttle by 0.5</li>
+				<li>Repeat</li>
+		</ol>
 
-Using this approach I was able to increase the maximum throttle up to .85.  The resulting control is rather jerky, but I was not able to effectively smooth out the oscillations without the vehicle crashing.
-</body>
-<html>
+		Using this approach I was able to increase the maximum throttle up to .85.  The resulting control is rather jerky, but I was not able to effectively smooth out the oscillations without the vehicle crashing.
+		</body>
+		<html>

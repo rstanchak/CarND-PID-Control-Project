@@ -1,7 +1,8 @@
-#include <uWS/uWS.h>
+#include "uws-compat.h"
 #include <iostream>
 #include "json.hpp"
 #include "PID.h"
+#include "TwiddleOptimizer.h"
 #include <math.h>
 
 // for convenience
@@ -28,14 +29,19 @@ std::string hasData(std::string s) {
   return "";
 }
 
-int main()
+int main(int argc, char ** argv)
 {
   uWS::Hub h;
 
-  PID pid;
-  // TODO: Initialize the pid variable.
+  struct Context {
+	  PID pid;
+  } ctx;
 
-  h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+  // Initialize the pid variable.
+  ctx.pid.Init( 0.0622524, 0.0015905, 1.21515 );
+
+  h.onMessage( UWS_ON_MESSAGE([&ctx](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+	//std::cout<<data<<std::endl;
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -48,24 +54,33 @@ int main()
         if (event == "telemetry") {
           // j[1] is the data JSON object
           double cte = std::stod(j[1]["cte"].get<std::string>());
-          double speed = std::stod(j[1]["speed"].get<std::string>());
-          double angle = std::stod(j[1]["steering_angle"].get<std::string>());
+          //double speed = std::stod(j[1]["speed"].get<std::string>());
+          //double angle = std::stod(j[1]["steering_angle"].get<std::string>());
           double steer_value;
+
           /*
           * TODO: Calcuate steering value here, remember the steering value is
           * [-1, 1].
           * NOTE: Feel free to play around with the throttle and speed. Maybe use
           * another PID controller to control the speed!
           */
+		  ctx.pid.UpdateError(cte);
+		  steer_value = ctx.pid.CalculateOutput(); // * (M_1_PI);
+
+		  if(steer_value < -1) steer_value = -1;
+		  else if(steer_value > 1) steer_value = 1;
           
           // DEBUG
-          std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
+          //std::cout << "CTE: " << cte <<","<< ctx.average_cte2 << " Steering Value: " << steer_value << std::endl;
+		  
+		  // throttle is inversely proportional to steering value
+		  double throttle = 0.60 * (1. - fabs(steer_value)) + 0.05;
+		  //double throttle = 1.0;
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = 0.3;
+          msgJson["throttle"] = throttle;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-          std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
         }
       } else {
@@ -74,7 +89,7 @@ int main()
         ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
       }
     }
-  });
+  }));
 
   // We don't need this since we're not using HTTP but if it's removed the program
   // doesn't compile :-(
@@ -91,14 +106,14 @@ int main()
     }
   });
 
-  h.onConnection([&h](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
-    std::cout << "Connected!!!" << std::endl;
-  });
+  h.onConnection(UWS_ON_CONNECTION([&h,&ctx](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
+    std::cout << "Connected" << std::endl;
+  }));
 
-  h.onDisconnection([&h](uWS::WebSocket<uWS::SERVER> ws, int code, char *message, size_t length) {
+  h.onDisconnection(UWS_ON_DISCONNECTION([&h](uWS::WebSocket<uWS::SERVER> ws, int code, char *message, size_t length) {
     ws.close();
     std::cout << "Disconnected" << std::endl;
-  });
+  }));
 
   int port = 4567;
   if (h.listen(port))

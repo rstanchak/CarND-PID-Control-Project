@@ -1,6 +1,6 @@
 project(PID)
 
-cmake_minimum_required (VERSION 3.5)
+cmake_minimum_required (VERSION 2.8)
 
 add_definitions(-std=c++11)
 
@@ -22,5 +22,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 
 add_executable(pid ${sources})
+add_executable(pidtwiddle src/twiddlemain.cpp src/PID.cpp)
 
 target_link_libraries(pid z ssl uv uWS)
+target_link_libraries(pidtwiddle z ssl uv uWS)

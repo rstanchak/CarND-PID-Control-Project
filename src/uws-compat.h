@@ -3,7 +3,6 @@
 
 #include <uWS/uWS.h>
 
-#define CONFIG_UWS13_COMPAT
 // silly wrappers to make callbacks in UWS 0.13 format work in 0.14 too
 #ifdef CONFIG_UWS13_COMPAT
 std::function<void(uWS::WebSocket<uWS::SERVER> *, char *, size_t, uWS::OpCode)> UWS_ON_MESSAGE( std::function<void(uWS::WebSocket<uWS::SERVER>, char *, size_t, uWS::OpCode)> handler ) 
@@ -29,9 +28,22 @@ UWS_ON_DISCONNECTION( std::function<void(uWS::WebSocket<uWS::SERVER>, int code, 
     };
 }
 #else
-#define UWS_ON_MESSAGE(x) x
-#define UWS_ON_CONNECTION(x) x
-#define UWS_ON_DISCONNECTION(x) x
+std::function<void(uWS::WebSocket<uWS::SERVER>, char *, size_t, uWS::OpCode)> UWS_ON_MESSAGE( std::function<void(uWS::WebSocket<uWS::SERVER>, char *, size_t, uWS::OpCode)> handler ) 
+{
+    return handler;
+}
+
+std::function<void(uWS::WebSocket<uWS::SERVER>, uWS::HttpRequest)>
+UWS_ON_CONNECTION( std::function<void(uWS::WebSocket<uWS::SERVER>, uWS::HttpRequest)> handler ) 
+{
+    return handler;
+}
+
+std::function<void(uWS::WebSocket<uWS::SERVER>, int code, char * message, size_t length)>
+UWS_ON_DISCONNECTION( std::function<void(uWS::WebSocket<uWS::SERVER>, int code, char *, size_t)> handler ) 
+{
+    return handler;
+}
 #endif
 
 #endif
